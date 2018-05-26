@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class play : MonoBehaviour {
 
@@ -12,21 +13,16 @@ public class play : MonoBehaviour {
     float increment = .05f;
     private SpriteRenderer spriteR;
     public Text text;
+    public Text playText;
+    public Text pointText;
     GameObject moveSprite;
-    int[][] positionVar = new int[0][];
+    int[,] positionVar = new int[5,5];
     int typeVar;
+    bool reload = false;
+    int intCount = 0;
+    int gamePoints = 0;
 
-    int[][] extendArray(int[][] baseArray, int[] addArray)
-    {
-        int c = baseArray.Length;
-        int[][] finalArray = new int[c + 1][];
-        for (int i = 0; i < c; i++)
-        {
-            finalArray[i] = baseArray[i];
-        }
-        finalArray[c] = addArray;
-        return finalArray;
-    }
+
 
     int[] extendArray(int[] baseArray, int addArray)
     {
@@ -42,39 +38,46 @@ public class play : MonoBehaviour {
 
     int[] GenerateCoords()
     {
-        int a = Random.Range(-2, 3);
-        int b = Random.Range(-2, 3);
-        int i = 0;
-        while (i < positionVar.Length)
+        int a = Random.Range(0, 5);
+        int b = Random.Range(0, 5);
+        Debug.Log(a + ", " + b);
+        Debug.Log("Count is " + intCount);
+        bool loop = true;
+        while (loop)
         {
-            if (positionVar.Length != 25)
+            if (intCount != 25)
             {
-                if (a == positionVar[i][0] && b == positionVar[i][1])
+                Debug.Log("Position is " + positionVar[a, b]);
+                if (positionVar[a, b] != 0)
+                { 
+                    a = Random.Range(0, 5);
+                    b = Random.Range(0, 5);
+
+                }
+                else
                 {
-                    i = -1;
-                    a = Random.Range(-2, 3);
-                    b = Random.Range(-2, 3);
+                    loop = false;
                 }
             }
             else
             {
-                break;
+                loop = false;
             }
-            i++;
         }
         return new int[] {a,b};
     }
 
     IEnumerator GenerateObject()
     {
-        pressedAllowed = false;
-        moveSprite = new GameObject();
-        spriteR = moveSprite.AddComponent<SpriteRenderer>();
-        spriteR.transform.localScale = new Vector2(.42f, .42f);
-        spriteR.sprite = sprite;
         int[] temp = GenerateCoords();
         horizontalLevel = temp[0];
         verticalLevel = temp[1];
+        pressedAllowed = false;
+        moveSprite = new GameObject("Block" + intCount);
+        spriteR = moveSprite.AddComponent<SpriteRenderer>();
+        spriteR.transform.localScale = new Vector2(.42f, .42f);
+        spriteR.sprite = sprite;
+        
         int a = Random.Range(0, 4);
         int R;
         int B;
@@ -110,7 +113,7 @@ public class play : MonoBehaviour {
             moveSprite.GetComponent<SpriteRenderer>().color = new Color(R, G, B, 0);
             typeVar = 4;
         }
-        moveSprite.transform.position = new Vector3(temp[0], temp[1], -1);
+        moveSprite.transform.position = new Vector3(temp[0] - 2, -1 * temp[1] + 2, -1);
         for (float h = 0; h < 1.0f; h += .05f)
         {
             yield return new WaitForSeconds(.000625f);
@@ -124,69 +127,58 @@ public class play : MonoBehaviour {
     {
         pressedAllowed = true;
         StartCoroutine(GenerateObject());
+        pointText.text = gamePoints.ToString();
     }
 	
 	// Update is called once per frame
 	void Update () {
 
-        if(Input.GetKeyDown("s") && verticalLevel != -2 && pressedAllowed)
+        if(Input.GetKeyDown("s") && verticalLevel != 4 && pressedAllowed)
         {
-            bool check = true;
-            for(int i = 0; i < positionVar.Length; i++)
-            { 
-                if (horizontalLevel == positionVar[i][0] && (verticalLevel - 1) == positionVar[i][1])
-                {
-                    check = false;
-                    break;
-                }
-            }
-            if (check)
+            bool check = false;
+            Debug.Log(horizontalLevel + " : " + verticalLevel);
+            if (positionVar[horizontalLevel, verticalLevel + 1] == 0)
             {
-                StartCoroutine(moveAnimation(0.0f, -1.0f, 0.0f));
-            }
-        }
-        if (Input.GetKeyDown("w") && verticalLevel != 2 && pressedAllowed)
-        {
-            bool check = true;
-            for (int i = 0; i < positionVar.Length; i++)
-            {
-                if (horizontalLevel == positionVar[i][0] && (verticalLevel + 1) == positionVar[i][1])
-                {
-                    check = false;
-                    break;
-                }
+                check = true;
             }
             if (check)
             {
                 StartCoroutine(moveAnimation(0.0f, 1.0f, 0.0f));
             }
         }
-        if (Input.GetKeyDown("a") && horizontalLevel != -2 && pressedAllowed)
+        if (Input.GetKeyDown("w") && verticalLevel != 0 && pressedAllowed)
         {
-            bool check = true;
-            for (int i = 0; i < positionVar.Length; i++)
+            bool check = false;
+  
+            if (positionVar[horizontalLevel, verticalLevel - 1] == 0)
             {
-                if ((horizontalLevel -1) == positionVar[i][0] && verticalLevel == positionVar[i][1])
-                {
-                    check = false;
-                    break;
-                }
+                 int vstring = verticalLevel - 1;
+                 Debug.Log(horizontalLevel + " : " + vstring);
+                 check = true;
+            }
+            if (check)
+            {
+                StartCoroutine(moveAnimation(0.0f, -1.0f, 0.0f));
+            }
+        }
+        if (Input.GetKeyDown("a") && horizontalLevel != 0 && pressedAllowed)
+        {
+            bool check = false;
+            if (positionVar[horizontalLevel - 1, verticalLevel] == 0)
+            {
+                check = true;
             }
             if (check)
             {
                 StartCoroutine(moveAnimation(-1.0f, 0.0f, 0.0f));
             }
         }
-        if (Input.GetKeyDown("d") && horizontalLevel != 2 && pressedAllowed)
+        if (Input.GetKeyDown("d") && horizontalLevel != 4 && pressedAllowed)
         {
-            bool check = true;
-            for (int i = 0; i < positionVar.Length; i++)
+            bool check = false;
+            if (positionVar[horizontalLevel + 1, verticalLevel] == 0)
             {
-                if ((horizontalLevel + 1) == positionVar[i][0] && verticalLevel == positionVar[i][1])
-                {
-                    check = false;
-                    break;
-                }
+                check = true;
             }
             if (check)
             {
@@ -195,48 +187,117 @@ public class play : MonoBehaviour {
         }
         if (Input.GetKeyDown("space") && pressedAllowed)
         {
-    
-            int[] posVar = new int[] { horizontalLevel, verticalLevel, typeVar};
-            positionVar = extendArray(positionVar, posVar);
-            string print = "{";
-            foreach(int[] varArray in positionVar)
-            {
-                print += "{";
-                foreach (int var in varArray)
-                {
-                    print += var.ToString() + ",";
-                }
-                print += "}";
-            }
-            print += "}";
+            positionVar[horizontalLevel, verticalLevel] = typeVar;
+            intCount++;
+            moveSprite.name = ("Block" + horizontalLevel + ":" + verticalLevel);
             StartCoroutine(GenerateObject());
-            int[] posArray = new int[0];
-        
-            for(int n = 0; n < positionVar.Length; n++)
+        }
+        if(Input.GetKeyDown("p") && pressedAllowed)
+        {
+            for (int i = 0; i < 5; i++)
             {
-                for (int k = 0; k < positionVar.Length; k++)
+                string passString = "";
+                for (int j = 0; j < 5; j++)
                 {
-                    if (positionVar[n][0] == positionVar[k][0] && n != k && positionVar[n][2] == positionVar[k][2])
-                    {
-                        posArray = extendArray(posArray, positionVar[n][0]);
-                    }
-                    else if (positionVar[n][1] == positionVar[k][1] && n != k)
-                    {
-
-                    }
-
-                    System.Array.Sort(posArray);
-                    Debug.Log()
+                    passString += positionVar[j, i].ToString() + ", ";
                 }
-                
+                Debug.Log(passString);
             }
         }
-        if (positionVar.Length == 24 && pressedAllowed)
+        if (intCount == 24 && pressedAllowed)
         {
             pressedAllowed = false;
-            StartCoroutine(endGame());           
+            StartCoroutine(endGame());
+        }
+        if (Input.GetKeyDown("space") && reload)
+        {
+            SceneManager.LoadScene("main");
+        }
+        if(Input.GetKeyDown("x") && pressedAllowed)
+        {
+           
+           for (int b = 0; b < 5; b++)
+           {
+                int first = positionVar[b, 0];
+                int[] checkArray = new int[0];
+                for (int c = 0; c < 5; c++)
+                {
+                    if (positionVar[b, c] == first && first != 0)
+                    {
+                        checkArray = extendArray(checkArray, (int) positionVar[b, c]);
+                    }
+                    if (checkArray.Length == 5)
+                    {
+                        gamePoints++;
+                        pointText.text = gamePoints.ToString();
+                        GameObject game1 = GameObject.Find("Block" + b + ":" + 0);
+                        GameObject game2 = GameObject.Find("Block" + b + ":" + 1);
+                        GameObject game3 = GameObject.Find("Block" + b + ":" + 2);
+                        GameObject game4 = GameObject.Find("Block" + b + ":" + 3);
+                        GameObject game5 = GameObject.Find("Block" + b + ":" + 4);
+                        Destroy(game1);
+                        Destroy(game2);
+                        Destroy(game3);
+                        Destroy(game4);
+                        Destroy(game5);
+                        positionVar[b, 0] = 0;
+                        positionVar[b, 1] = 0;
+                        positionVar[b, 2] = 0;
+                        positionVar[b, 3] = 0;
+                        positionVar[b, 4] = 0;
+                        intCount -= 5;
+                    }
+                }
+                string printVar = "{";
+                foreach (int entry in checkArray)
+                {
+                    printVar += entry + ",";
+                }
+                Debug.Log(printVar + "}");
+            }
+            for (int c = 0; c < 5; c++)
+            {
+                int first = positionVar[0, c];
+                int[] checkArray = new int[0];
+                for (int b = 0; b < 5; b++)
+                {
+                    if (positionVar[b, c] == first && first != 0)
+                    {
+                        checkArray = extendArray(checkArray, (int)positionVar[b, c]);
+                    }
+                    if (checkArray.Length == 5)
+                    {
+                        gamePoints++;
+                        pointText.text = gamePoints.ToString();
+                        GameObject game1 = GameObject.Find("Block" + 0 + ":" + c);
+                        GameObject game2 = GameObject.Find("Block" + 1 + ":" + c);
+                        GameObject game3 = GameObject.Find("Block" + 2 + ":" + c);
+                        GameObject game4 = GameObject.Find("Block" + 3 + ":" + c);
+                        GameObject game5 = GameObject.Find("Block" + 4 + ":" + c);
+                        Destroy(game1);
+                        Destroy(game2);
+                        Destroy(game3);
+                        Destroy(game4);
+                        Destroy(game5);
+                        positionVar[0, c] = 0;
+                        positionVar[1, c] = 0;
+                        positionVar[2, c] = 0;
+                        positionVar[3, c] = 0;
+                        positionVar[4, c] = 0;
+                        intCount -= 5;
+                    }
+                }
+                string printVar = "{";
+                foreach (int entry in checkArray)
+                {
+                    printVar += entry + ",";
+                }
+                Debug.Log(printVar + "}");
+            }
         }
     }
+
+  
 
     IEnumerator endGame()
     {
@@ -245,25 +306,45 @@ public class play : MonoBehaviour {
             yield return new WaitForSeconds(.000625f);
             text.color = new Color(0.0f, 0.0f, 0.0f, a);
         }
+        yield return new WaitForSeconds(1.625f);
         text.color = new Color(0.0f, 0.0f, 0.0f, 1.0f);
-        Debug.Log("DOWN");
+        for (float a = 0; a < 1.0f; a += .05f)
+        {
+            yield return new WaitForSeconds(.000625f);
+            playText.color = new Color(0.0f, 0.0f, 0.0f, a);
+        }
+        playText.color = new Color(0.0f, 0.0f, 0.0f, 1.0f);
+        reload = true;
         
     }
 
     IEnumerator moveAnimation(float x, float y, float z)
     {
+        int orgX = horizontalLevel - 2;
+        int orgY = -1 * verticalLevel + 2;
         pressedAllowed = false;
-        int orgX = horizontalLevel;
-        int orgY = verticalLevel;
         horizontalLevel += (int) x;
         verticalLevel += (int) y;
-        for (float i = 0.0f; i <= 1.0f; i += increment)
+        
+        for (float i = 0.0f; i <= 1.0f + increment; i += increment)
         {
             yield return new WaitForSeconds(.000001f);
-            moveSprite.transform.position = new Vector3(orgX + (i * x), orgY + (i * y), -1);
+            moveSprite.transform.position = new Vector3(orgX + (i * x), orgY + (i * -y), -1);
         }
-        moveSprite.transform.position = new Vector3(horizontalLevel, verticalLevel, -1);
+        /*
+        int orgX = (int) moveSprite.transform.position.x;
+        int orgY = (int) moveSprite.transform.position.y;
+        Debug.Log("position is " + orgX + " : " + orgY);
+        horizontalLevel += (int) x;
+        verticalLevel += (int) y;
+        Debug.Log("x is " + x + " ; y is " + y);
+        for (float i = 0.0f; i <= 1.0f + increment; i += increment)
+        {
+            yield return new WaitForSeconds(.000001f);
+            moveSprite.transform.position = new Vector3(orgX + (i * x), orgY + (i * -y), -1);
+        }
+        */
+        //moveSprite.transform.position = new Vector3(orgX + x, orgY + y, -1);
         pressedAllowed = true;
     }
-
 }
