@@ -78,10 +78,12 @@ public class play : MonoBehaviour {
         spriteR.transform.localScale = new Vector2(.42f, .42f);
         spriteR.sprite = sprite;
         
-        int a = Random.Range(0, 4);
+        int a = Random.Range(0, 6);
+        Debug.Log("a is " + a);
         int R;
         int B;
         int G;
+        
         if (a == 1) {
             R = 1;
             B = 0;
@@ -105,13 +107,31 @@ public class play : MonoBehaviour {
             moveSprite.GetComponent<SpriteRenderer>().color = new Color(R, G, B, 0);
             typeVar = 3;
         }
-        else
+        else if (a == 4)
+        {
+            Debug.Log("works");
+            R = 0;
+            B = 0;
+            G = 0;
+            moveSprite.GetComponent<SpriteRenderer>().color = new Color(R, G, B, 0);
+            typeVar = 4;
+        }
+        else if (a == 5)
         {
             R = 1;
             B = 0;
             G = 1;
             moveSprite.GetComponent<SpriteRenderer>().color = new Color(R, G, B, 0);
-            typeVar = 4;
+            typeVar = 6;
+        }
+        else
+        {
+            Debug.Log("works");
+            R = 1;
+            B = 1;
+            G = 0;
+            moveSprite.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 0);
+            typeVar = 7;
         }
         moveSprite.transform.position = new Vector3(temp[0] - 2, -1 * temp[1] + 2, -1);
         for (float h = 0; h < 1.0f; h += .05f)
@@ -136,7 +156,6 @@ public class play : MonoBehaviour {
         if(Input.GetKeyDown("s") && verticalLevel != 4 && pressedAllowed)
         {
             bool check = false;
-            Debug.Log(horizontalLevel + " : " + verticalLevel);
             if (positionVar[horizontalLevel, verticalLevel + 1] == 0)
             {
                 check = true;
@@ -153,7 +172,6 @@ public class play : MonoBehaviour {
             if (positionVar[horizontalLevel, verticalLevel - 1] == 0)
             {
                  int vstring = verticalLevel - 1;
-                 Debug.Log(horizontalLevel + " : " + vstring);
                  check = true;
             }
             if (check)
